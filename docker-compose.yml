@@ -4,4 +4,4 @@ services:
   app:
     build: .
     volumes:
-      - ./local-sqlite-data:/app/sqlite-data/
+      - /local-sqlite-data:/app/sqlite-data/
