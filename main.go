@@ -20,7 +20,7 @@ const webSocketUrl string = "wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?pr
 const startListeningCommand string = "{\"event\":\"pusher:subscribe\",\"data\":{\"auth\":\"\",\"channel\":\"chatrooms.%d.v2\"}}"
 
 func main() {
-	db, err := sql.Open("sqlite", "file:examplev2.db?cache=shared")
+	db, err := sql.Open("sqlite", "file:database.db?cache=shared")
 	if err != nil {
 		log.Fatal(err)
 	}

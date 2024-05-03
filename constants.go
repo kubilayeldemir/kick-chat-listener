@@ -7,6 +7,7 @@ var ChannelAndChatIdMap = map[string]int{
 	"chips":       25594578,
 	"tolunayoren": 357571,
 	"kaanflix":    7437325,
+	"hype":        24495088,
 }
 
 var ChatIdAndChannelMap = map[int]string{}
