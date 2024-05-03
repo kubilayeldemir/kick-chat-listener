@@ -9,7 +9,7 @@ type Message struct {
 
 // Data represents the structure of the `data` JSON string.
 type Data struct {
-	ID         string `json:"id"`
+	//ID         string `json:"id"` //rarely received number
 	ChatroomID int    `json:"chatroom_id"`
 	Content    string `json:"content"`
 	Type       string `json:"type"`
@@ -19,10 +19,10 @@ type Data struct {
 
 // Sender represents the nested `sender` structure in `Data`.
 type Sender struct {
-	ID       int      `json:"id"`
-	Username string   `json:"username"`
-	Slug     string   `json:"slug"`
-	Identity Identity `json:"identity"`
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	Slug     string `json:"slug"`
+	//Identity Identity `json:"identity"`
 }
 
 // Identity represents the nested `identity` structure in `Sender`.
