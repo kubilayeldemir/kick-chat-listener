@@ -12,8 +12,7 @@ RUN go build -o main .
 
 FROM alpine:latest
 
-WORKDIR /root/
-
+WORKDIR /app
 COPY --from=builder /app/main .
 
 RUN apk add --no-cache sqlite
