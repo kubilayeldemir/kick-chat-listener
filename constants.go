@@ -9,8 +9,8 @@ var ChannelAndChatIdMap = map[string]int{
 	"kaanflix":    7437325,
 	"hype":        24495088,
 	"elwind":      25240548,
-	"elraenn":     1292179,
-	"purplebixi":  25712360,
+	"elraenn":     25712360,
+	"purplebixi":  25593921,
 	"swaggybark":  25593949,
 	"rammus53":    1292179,
 }
