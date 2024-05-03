@@ -13,54 +13,27 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func main() {
-	db, err := sql.Open("sqlite", "file:examplev2.db?cache=shared")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
+const webSocketUrl string = "wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.6.0&flash=false" // Replace this with the actual URL of the WebSocket server.
 
-	sqlStmt := `
-    CREATE TABLE IF NOT EXISTS messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        content TEXT NOT NULL,
-        username TEXT NOT NULL,
-        channel TEXT NOT NULL,
-        date TEXT NOT NULL
-    );
-    `
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		log.Printf("%q: %s\n", err, sqlStmt)
-		return
-	}
-
-	// URL of the WebSocket server.
-	url := "wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.6.0&flash=false" // Replace this with the actual URL of the WebSocket server.
-
-	// Create a request to establish a WebSocket connection.
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func startListeningChat(db *sql.DB, streamerName string, chatRoomId string, dataChannel chan<- Data) {
+	req, err := http.NewRequest(http.MethodGet, webSocketUrl, nil)
 	if err != nil {
 		log.Fatalf("error creating request: %v", err)
 	}
 
 	// Connect to the server.
-	conn, _, _, err := ws.Dialer{}.Dial(req.Context(), url)
+	conn, _, _, err := ws.Dialer{}.Dial(req.Context(), webSocketUrl)
 	if err != nil {
 		log.Fatalf("error connecting to websocket: %v", err)
 	}
 	defer conn.Close()
 
 	// Send a message to the WebSocket server.
-	message := []byte("{\"event\":\"pusher:subscribe\",\"data\":{\"auth\":\"\",\"channel\":\"chatrooms.25561406.v2\"}}")
+	message := []byte(fmt.Sprintf("{\"event\":\"pusher:subscribe\",\"data\":{\"auth\":\"\",\"channel\":\"chatrooms.%s.v2\"}}", chatRoomId))
 	err = wsutil.WriteClientMessage(conn, ws.OpText, message)
 	if err != nil {
 		log.Fatalf("error sending message: %v", err)
 	}
-
-	dataChannel := make(chan Data, 100)
-
-	go WriteToSqliteFromChannel(db, dataChannel)
 
 	// Read messages from the server in a separate goroutine.
 	go func() {
@@ -88,11 +61,43 @@ func main() {
 
 			dataChannel <- data
 
-			fmt.Printf("%s:%s \n", data.Sender.Username, data.Content)
+			fmt.Printf("%s:%s:%s \n", streamerName, data.Sender.Username, data.Content)
 		}
 	}()
 
 	// Block main goroutine without using time.After
+	select {}
+
+}
+
+func main() {
+	db, err := sql.Open("sqlite", "file:examplev2.db?cache=shared")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	sqlStmt := `
+    CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content TEXT NOT NULL,
+        username TEXT NOT NULL,
+        channel TEXT NOT NULL,
+        date TEXT NOT NULL
+    );
+    `
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		log.Printf("%q: %s\n", err, sqlStmt)
+		return
+	}
+	dataChannel := make(chan Data, 100)
+	go WriteToSqliteFromChannel(db, dataChannel)
+	for streamerName, chatRoomId := range StreamerChatSocketUrlList {
+		go startListeningChat(db, streamerName, chatRoomId, dataChannel)
+	}
+
+	// Block main goroutine
 	select {}
 }
 
