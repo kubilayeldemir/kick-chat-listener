@@ -13,6 +13,7 @@ var ChannelAndChatIdMap = map[string]int{
 	"purplebixi":  25593921,
 	"swaggybark":  25593949,
 	"rammus53":    1292179,
+	"uthenera":    7320801,
 }
 
 var ChatIdAndChannelMap = map[int]string{}
