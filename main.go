@@ -17,7 +17,7 @@ import (
 
 const batchSize = 10
 const webSocketUrl string = "wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.6.0&flash=false"
-const startListeningCommand string = "{\"event\":\"pusher:subscribe\",\"data\":{\"auth\":\"\",\"channel\":\"chatrooms.%d.v2\"}}"
+const chatroomSubcribeCommand string = "{\"event\":\"pusher:subscribe\",\"data\":{\"auth\":\"\",\"channel\":\"chatrooms.%d.v2\"}}"
 
 func main() {
 	db, err := sql.Open("sqlite", "file:sqlite-data/database.db?cache=shared")
@@ -111,8 +111,8 @@ func startListeningChat(streamerName string, chatRoomId int, dataChannel chan<- 
 	}
 	defer conn.Close()
 
-	// Send a message to the WebSocket server.
-	message := []byte(fmt.Sprintf(startListeningCommand, chatRoomId))
+	// Send a message to the WebSocket server to subscribe to chatroom.
+	message := []byte(fmt.Sprintf(chatroomSubcribeCommand, chatRoomId))
 	err = wsutil.WriteClientMessage(conn, ws.OpText, message)
 	if err != nil {
 		log.Fatalf("error sending message: %v", err)
@@ -120,33 +120,36 @@ func startListeningChat(streamerName string, chatRoomId int, dataChannel chan<- 
 
 	c := GetRandomColorForLog()
 
-	// Read messages from the server in a separate goroutine.
 	for {
 		msg, _, err := wsutil.ReadServerData(conn)
 		if err != nil {
 			log.Printf("error reading message: %v", err)
-			return // or handle reconnection logic here
-		}
-
-		var event Message
-		if err := json.Unmarshal(msg, &event); err != nil {
-			fmt.Println("Error unmarshaling event:", err)
 			return
 		}
 
-		var data Data
-		if err := json.Unmarshal([]byte(event.Data), &data); err != nil {
-			fmt.Println("Error unmarshaling data:", err)
-			return
-		}
-		if data.Type != "message" {
-			continue
-		}
-
-		dataChannel <- data
-
-		c.Printf("%s:%s:%s \n", streamerName, data.Sender.Username, data.Content)
+		go UnmarshallAndSendToChannel(streamerName, msg, dataChannel, c)
 	}
+}
+
+func UnmarshallAndSendToChannel(streamerName string, msgByte []byte, dataChannel chan<- Data, c *color.Color) {
+	var event Message
+	if err := json.Unmarshal(msgByte, &event); err != nil {
+		fmt.Println("Error unmarshaling event:", err)
+		return
+	}
+
+	var data Data
+	if err := json.Unmarshal([]byte(event.Data), &data); err != nil {
+		fmt.Println("Error unmarshaling data:", err)
+		return
+	}
+	if data.Type != "message" {
+		return
+	}
+
+	dataChannel <- data
+
+	c.Printf("%s:%s:%s \n", streamerName, data.Sender.Username, data.Content)
 }
 
 func GetRandomColorForLog() *color.Color {
