@@ -89,7 +89,7 @@ func HandleDataChannelInserts(db *sql.DB, dataChannel <-chan Data) {
 	for data := range dataChannel {
 		dataBatch = append(dataBatch, data)
 		if len(dataBatch) >= batchSize {
-			color.White("Batch filled at %v\n", time.Since(start))
+			color.White("-> Batch filled at %v\n", time.Since(start))
 			start = time.Now()
 			WriteToDb(db, dataBatch)
 			dataBatch = make([]Data, 0, batchSize)
