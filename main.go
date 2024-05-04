@@ -59,7 +59,6 @@ func CreateTable(db *sql.DB) error {
 }
 
 func WriteToDb(db *sql.DB, dataList []Data) {
-	color.White("Writing %d rows to db\n", len(dataList))
 	defer timer("WriteToDb")()
 	if len(dataList) == 0 {
 		return
@@ -173,6 +172,6 @@ func GetRandomColorForLog() *color.Color {
 func timer(name string) func() {
 	start := time.Now()
 	return func() {
-		color.White("%s took %v\n", name, time.Since(start))
+		color.White("-> %s took %v\n", name, time.Since(start))
 	}
 }
