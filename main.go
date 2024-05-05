@@ -123,6 +123,7 @@ func startListeningChat(streamerName string, chatRoomId int, dataChannel chan<- 
 		msg, _, err := wsutil.ReadServerData(conn)
 		if err != nil {
 			log.Printf("error reading message: %v", err)
+			time.Sleep(1 * time.Minute)
 			go startListeningChat(streamerName, chatRoomId, dataChannel)
 			return
 		}
