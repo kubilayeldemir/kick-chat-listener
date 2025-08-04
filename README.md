@@ -26,6 +26,10 @@ Db file will be created inside /local-sqlite-data folder.
 
 # Performance
 
+🧵 One Goroutine Per Chatroom
+
+For each chatroom defined in the `ChannelAndChatIdMap`, a separate goroutine is launched: `go startListeningChat(channelName, chatRoomId, dataChannel)`
+
 ⚙️ Parallel Message Handling
 
 Every incoming message is processed in its own goroutine:
